@@ -9,13 +9,21 @@ function Onboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
-  const [form, setForm] = useStateconst [form, setForm] = useState({
-  father_name: '', date_of_birth: '', gender: '',
-  permanent_address: '', current_address: '',
-  bank_name: '', bank_account_no: '', bank_ifsc: '',
-  bank_account_type: 'savings', pan: '', aadhaar_last4: '',
-  blood_group: '', work_experience: '',
-})
+  const [form, setForm] = useState({
+    father_name: '',
+    date_of_birth: '',
+    gender: '',
+    blood_group: '',
+    work_experience: '',
+    permanent_address: '',
+    current_address: '',
+    bank_name: '',
+    bank_account_no: '',
+    bank_ifsc: '',
+    bank_account_type: 'savings',
+    pan: '',
+    aadhaar_last4: '',
+  })
 
   useEffect(() => {
     async function fetchEmployee() {
@@ -41,6 +49,8 @@ function Onboard() {
           bank_name: data.bank_name || '',
           bank_account_no: data.bank_account_no || '',
           bank_ifsc: data.bank_ifsc || '',
+          blood_group: data.blood_group || '',
+          work_experience: data.work_experience || '',
         }))
       }
       setLoading(false)
@@ -132,26 +142,6 @@ function Onboard() {
                 <input name="father_name" value={form.father_name} onChange={handleChange} className={inputClass} placeholder="Ram Kumar" />
               </div>
               <div>
-              <div>
-  <label className="block text-sm font-medium text-gray-600 mb-1">Blood Group</label>
-  <select name="blood_group" value={form.blood_group} onChange={handleChange} className={inputClass}>
-    <option value="">Select</option>
-    {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(bg => (
-      <option key={bg} value={bg}>{bg}</option>
-    ))}
-  </select>
-</div>
-
-<div>
-  <label className="block text-sm font-medium text-gray-600 mb-1">Work Experience</label>
-  <input
-    name="work_experience"
-    value={form.work_experience}
-    onChange={handleChange}
-    className={inputClass}
-    placeholder="e.g. 2 Years"
-  />
-</div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">Date of Birth</label>
                 <input type="date" name="date_of_birth" value={form.date_of_birth} onChange={handleChange} className={inputClass} />
               </div>
@@ -163,6 +153,19 @@ function Onboard() {
                   <option value="female">Female</option>
                   <option value="other">Other</option>
                 </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">Blood Group</label>
+                <select name="blood_group" value={form.blood_group} onChange={handleChange} className={inputClass}>
+                  <option value="">Select</option>
+                  {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(bg => (
+                    <option key={bg} value={bg}>{bg}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">Work Experience</label>
+                <input name="work_experience" value={form.work_experience} onChange={handleChange} className={inputClass} placeholder="e.g. 2 Years" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">Permanent Address</label>
@@ -194,7 +197,7 @@ function Onboard() {
                 <input name="aadhaar_last4" value={form.aadhaar_last4} onChange={handleChange} className={inputClass} placeholder="1234" maxLength={4} />
               </div>
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                <p className="text-yellow-700 text-xs">📎 Document uploads (Aadhaar, PAN scan) will be enabled in next step by HR team.</p>
+                <p className="text-yellow-700 text-xs">📎 Document uploads (Aadhaar, PAN scan) will be enabled by HR team.</p>
               </div>
             </div>
             <div className="flex gap-3 mt-6">
