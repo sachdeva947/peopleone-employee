@@ -9,12 +9,13 @@ function Onboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
-  const [form, setForm] = useState({
-    father_name: '', date_of_birth: '', gender: '',
-    permanent_address: '', current_address: '',
-    bank_name: '', bank_account_no: '', bank_ifsc: '',
-    bank_account_type: 'savings', pan: '', aadhaar_last4: '',
-  })
+  const [form, setForm] = useStateconst [form, setForm] = useState({
+  father_name: '', date_of_birth: '', gender: '',
+  permanent_address: '', current_address: '',
+  bank_name: '', bank_account_no: '', bank_ifsc: '',
+  bank_account_type: 'savings', pan: '', aadhaar_last4: '',
+  blood_group: '', work_experience: '',
+})
 
   useEffect(() => {
     async function fetchEmployee() {
@@ -131,6 +132,26 @@ function Onboard() {
                 <input name="father_name" value={form.father_name} onChange={handleChange} className={inputClass} placeholder="Ram Kumar" />
               </div>
               <div>
+              <div>
+  <label className="block text-sm font-medium text-gray-600 mb-1">Blood Group</label>
+  <select name="blood_group" value={form.blood_group} onChange={handleChange} className={inputClass}>
+    <option value="">Select</option>
+    {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(bg => (
+      <option key={bg} value={bg}>{bg}</option>
+    ))}
+  </select>
+</div>
+
+<div>
+  <label className="block text-sm font-medium text-gray-600 mb-1">Work Experience</label>
+  <input
+    name="work_experience"
+    value={form.work_experience}
+    onChange={handleChange}
+    className={inputClass}
+    placeholder="e.g. 2 Years"
+  />
+</div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">Date of Birth</label>
                 <input type="date" name="date_of_birth" value={form.date_of_birth} onChange={handleChange} className={inputClass} />
               </div>
