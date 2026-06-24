@@ -184,34 +184,47 @@ function Onboard() {
         )}
 
         {/* Step 2 — Documents */}
-        {step === 2 && (
-          <div className="bg-white rounded-2xl shadow p-6">
-            <h2 className="text-lg font-semibold text-blue-900 mb-4">Identity Documents</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">PAN Number</label>
-                <input name="pan" value={form.pan} onChange={handleChange} className={inputClass} placeholder="ABCDE1234F" maxLength={10} />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">Aadhaar Last 4 Digits</label>
-                <input name="aadhaar_last4" value={form.aadhaar_last4} onChange={handleChange} className={inputClass} placeholder="1234" maxLength={4} />
-              </div>
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                <p className="text-yellow-700 text-xs">📎 Document uploads (Aadhaar, PAN scan) will be enabled by HR team.</p>
-              </div>
-            </div>
-            <div className="flex gap-3 mt-6">
-              <button onClick={() => setStep(1)}
-                className="flex-1 border border-gray-300 text-gray-600 py-3 rounded-lg font-medium hover:bg-gray-50 transition">
-                ← Back
-              </button>
-              <button onClick={() => setStep(3)}
-                className="flex-1 bg-blue-900 text-white py-3 rounded-lg font-medium hover:bg-blue-800 transition">
-                Next →
-              </button>
-            </div>
-          </div>
-        )}
+{step === 2 && (
+  <div className="bg-white rounded-2xl shadow p-6">
+    <h2 className="text-lg font-semibold text-blue-900 mb-4">Upload Documents</h2>
+    <p className="text-gray-400 text-xs mb-4">
+      Upload clear photos/scans. Accepted: JPG, PNG, PDF. Max 5MB each.
+    </p>
+
+    <div className="space-y-4">
+      {[
+        { code: 'AADHAAR_FRONT',    label: 'Aadhaar Card (Front)',   mandatory: true },
+        { code: 'AADHAAR_BACK',     label: 'Aadhaar Card (Back)',    mandatory: true },
+        { code: 'PAN_CARD',         label: 'PAN Card',               mandatory: true },
+        { code: 'PHOTO',            label: 'Passport Size Photo',    mandatory: true },
+        { code: 'CANCELLED_CHEQUE', label: 'Cancelled Cheque',       mandatory: true },
+        { code: '10TH_CERT',        label: '10th Certificate',       mandatory: false },
+        { code: '12TH_CERT',        label: '12th Certificate',       mandatory: false },
+        { code: 'GRADUATION',       label: 'Graduation Certificate', mandatory: false },
+        { code: 'EXPERIENCE',       label: 'Experience Letter',      mandatory: false },
+        { code: 'RELIEVING',        label: 'Relieving Letter',       mandatory: false },
+      ].map(doc => (
+        <DocumentUploadRow
+          key={doc.code}
+          doc={doc}
+          employeeId={employee.id}
+          onUploaded={() => {}}
+        />
+      ))}
+    </div>
+
+    <div className="flex gap-3 mt-6">
+      <button onClick={() => setStep(1)}
+        className="flex-1 border border-gray-300 text-gray-600 py-3 rounded-lg font-medium hover:bg-gray-50 transition">
+        ← Back
+      </button>
+      <button onClick={() => setStep(3)}
+        className="flex-1 bg-blue-900 text-white py-3 rounded-lg font-medium hover:bg-blue-800 transition">
+        Next →
+      </button>
+    </div>
+  </div>
+)}
 
         {/* Step 3 — Bank Details */}
         {step === 3 && (
@@ -261,6 +274,94 @@ function Onboard() {
           </div>
         )}
 
+      </div>
+    </div>
+  )
+}
+function DocumentUploadRow({ doc, employeeId, onUploaded }) {
+  const [uploading, setUploading] = useState(false)
+  const [uploaded, setUploaded] = useState(false)
+  const [fileName, setFileName] = useState('')
+  const [error, setError] = useState('')
+
+  async function handleUpload(e) {
+    const file = e.target.files[0]
+    if (!file) return
+
+    // Size check — 5MB
+    if (file.size > 5 * 1024 * 1024) {
+      setError('File too large! Max 5MB allowed.')
+      return
+    }
+
+    setUploading(true)
+    setError('')
+
+    try {
+      const ext = file.name.split('.').pop()
+      const filePath = `${employeeId}/${doc.code}_${Date.now()}.${ext}`
+
+      // Upload to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from('employee-documents')
+        .upload(filePath, file, { upsert: true })
+
+      if (uploadError) throw uploadError
+
+      // Save record in DB
+      await supabase.from('employee_documents').insert({
+        employee_id: employeeId,
+        doc_type: doc.code,
+        doc_type_code: doc.code,
+        doc_name: doc.label,
+        file_name: file.name,
+        file_url: filePath,
+        file_size_kb: Math.round(file.size / 1024),
+        uploaded_by: 'employee',
+        verified: false,
+        verification_status: 'pending',
+      })
+
+      setUploaded(true)
+      setFileName(file.name)
+      onUploaded()
+    } catch (err) {
+      setError('Upload failed. Please try again.')
+    }
+    setUploading(false)
+  }
+
+  return (
+    <div className={`border rounded-xl p-4 ${uploaded ? 'border-green-300 bg-green-50' : 'border-gray-200'}`}>
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium text-gray-700">
+            {doc.label}
+            {doc.mandatory && <span className="text-red-500 ml-1">*</span>}
+          </p>
+          {uploaded && (
+            <p className="text-xs text-green-600 mt-0.5">✅ {fileName}</p>
+          )}
+          {error && (
+            <p className="text-xs text-red-500 mt-0.5">❌ {error}</p>
+          )}
+        </div>
+        <div>
+          {uploaded ? (
+            <label className="cursor-pointer text-xs text-blue-600 hover:underline">
+              Re-upload
+              <input type="file" accept=".jpg,.jpeg,.png,.pdf"
+                onChange={handleUpload} className="hidden" />
+            </label>
+          ) : (
+            <label className={`cursor-pointer px-4 py-2 rounded-lg text-sm font-medium text-white
+              ${uploading ? 'bg-gray-400' : 'bg-blue-900 hover:bg-blue-800'}`}>
+              {uploading ? 'Uploading...' : '📎 Upload'}
+              <input type="file" accept=".jpg,.jpeg,.png,.pdf"
+                onChange={handleUpload} className="hidden" disabled={uploading} />
+            </label>
+          )}
+        </div>
       </div>
     </div>
   )
